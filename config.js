@@ -11,6 +11,10 @@ const CONFIG = {
   ],
   DEFAULT_SIZE: "75x50",
 
+  // Roll layout — ek line mein kitne sticker (TSC roll 1-up / 2-up / 3-up)
+  DEFAULT_COLS: 1,
+  DEFAULT_COL_GAP_MM: 2,     // do stickers ke beech ka gap (left-right)
+
   // Barcode settings (Code128)
   BARCODE_FORMAT: "CODE128",
   BAR_WIDTH: 1.6,      // ek bar ki width (px) — scan na ho to badhao
