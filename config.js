@@ -16,5 +16,11 @@ const CONFIG = {
   BAR_WIDTH: 1.6,      // ek bar ki width (px) — scan na ho to badhao
   BAR_HEIGHT: 45,      // barcode height (px)
 
-  DEFAULT_MODEL: "51V100Ah"
+  DEFAULT_MODEL: "51V100Ah",
+
+  // QR settings
+  DEFAULT_CODE: "barcode",   // "barcode" | "qr" | "both"
+  QR_CONTENT: "all",         // "all" = Battery No|BT No|Model,  "battery" = sirf Battery No
+  QR_SEPARATOR: "|",
+  QR_ERROR_LEVEL: "M"        // L / M / Q / H
 };
