@@ -30,6 +30,20 @@
   } catch (e) {}
   if (!els.size.value) els.size.value = CONFIG.DEFAULT_SIZE;
 
+  // roll layout (1-up / 2-up / 3-up)
+  const selCols = $("selCols"), inColGap = $("inColGap");
+  selCols.value = CONFIG.DEFAULT_COLS;
+  inColGap.value = CONFIG.DEFAULT_COL_GAP_MM;
+  try {
+    const r = JSON.parse(localStorage.getItem("litpaxRoll") || "null");
+    if (r) { selCols.value = r.cols; inColGap.value = r.gap; }
+  } catch (e) {}
+  function saveRoll() {
+    try { localStorage.setItem("litpaxRoll", JSON.stringify({ cols: selCols.value, gap: inColGap.value })); } catch (e) {}
+  }
+  selCols.addEventListener("change", saveRoll);
+  inColGap.addEventListener("input", saveRoll);
+
   // barcode size sliders
   const rngW = $("rngBarW"), rngH = $("rngBarH");
   rngW.value = CONFIG.BAR_SIZE_PCT;
@@ -287,12 +301,31 @@
       return showMsg("Custom size sahi daalo: width kam se kam 20 mm, height 10 mm.", true);
     const size = getSize();
     const mode = els.mode.value;
+    const cols = Number(selCols.value) || 1;
+    const gap = Math.max(0, parseFloat(inColGap.value) || 0);
+    const pageW = cols * size.w + (cols - 1) * gap;   // poori line ki width
+
     $("page-size").textContent = mode === "label"
-      ? `@page { size: ${size.w}mm ${size.h}mm; margin: 0; }`
+      ? `@page { size: ${pageW}mm ${size.h}mm; margin: 0; }`
       : `@page { size: A4; margin: 8mm; }`;
     els.printArea.className = "print-only mode-" + mode;
     els.printArea.innerHTML = "";
-    labels.forEach((l) => els.printArea.appendChild(buildLabel(l)));
+
+    if (mode === "label") {
+      // har page = roll ki ek line, usmein `cols` labels
+      for (let i = 0; i < labels.length; i += cols) {
+        const row = document.createElement("div");
+        row.className = "label-row";
+        row.style.width = pageW + "mm";
+        row.style.height = size.h + "mm";
+        row.style.gap = gap + "mm";
+        labels.slice(i, i + cols).forEach((l) => row.appendChild(buildLabel(l)));
+        els.printArea.appendChild(row);
+      }
+      showMsg(`Driver mein stock size: ${pageW} × ${size.h} mm rakhna`);
+    } else {
+      labels.forEach((l) => els.printArea.appendChild(buildLabel(l)));
+    }
     window.print();
   });
 
