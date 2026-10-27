@@ -51,6 +51,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
 .custom-size { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .custom-size input { flex: 1; min-width: 0; }
 .custom-size span { color: var(--muted); font-size: 13px; }
+.slider label { display: flex; justify-content: space-between; }
+.slider label b { font-family: var(--mono); color: var(--ink); }
+.slider input { padding: 0; border: 0; accent-color: var(--accent); }
 .check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink); }
 .check input { width: auto; }
 
