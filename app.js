@@ -6,7 +6,7 @@
   const els = {
     form: $("singleForm"), battery: $("inBattery"), bt: $("inBt"), model: $("inModel"),
     bulk: $("inBulk"), bulkAdd: $("bulkAdd"), bulkBody: $("bulkBody"),
-    size: $("selSize"), mode: $("selMode"), btBar: $("chkBtBarcode"),
+    size: $("selSize"), mode: $("selMode"), btBar: $("chkBtBarcode"), code: $("selCode"),
     preview: $("preview"), empty: $("previewEmpty"), count: $("labelCount"),
     printArea: $("printArea"), msg: $("msg")
   };
@@ -19,6 +19,7 @@
   });
   els.size.value = CONFIG.DEFAULT_SIZE;
   els.model.value = CONFIG.DEFAULT_MODEL;
+  els.code.value = CONFIG.DEFAULT_CODE;
   const bulkHint = document.querySelector("#bulkBody .hint");
   bulkHint.textContent = bulkHint.textContent.replace("{{model}}", CONFIG.DEFAULT_MODEL);
 
@@ -53,25 +54,69 @@
     return "ok";
   }
 
+  // ---------- QR ----------
+  function qrText(item) {
+    if (CONFIG.QR_CONTENT === "battery") return item.battery;
+    return [item.battery, item.bt, item.model].join(CONFIG.QR_SEPARATOR);
+  }
+
+  function buildQr(item) {
+    const box = document.createElement("div");
+    box.className = "qr";
+    try {
+      const qr = qrcode(0, CONFIG.QR_ERROR_LEVEL);
+      qr.addData(qrText(item));
+      qr.make();
+      box.innerHTML = qr.createSvgTag(4, 0);
+      const s = box.querySelector("svg");
+      s.removeAttribute("width"); s.removeAttribute("height");
+      s.setAttribute("viewBox", `0 0 ${qr.getModuleCount() * 4} ${qr.getModuleCount() * 4}`);
+    } catch (e) {
+      box.textContent = "QR error";
+    }
+    return box;
+  }
+
   // ---------- build one label ----------
   function buildLabel(item) {
     const size = getSize();
+    const codeType = els.code.value;
     const div = document.createElement("div");
     div.className = "label" + (size.h <= 30 ? " small" : "");
     div.style.width = size.w + "mm";
     div.style.height = size.h + "mm";
 
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    div.appendChild(svg);
-    const showBtBar = els.btBar.checked && item.bt;
+    // QR only / both: QR left, baaki right
+    if (codeType !== "barcode") {
+      div.classList.add("with-qr");
+      const qrBox = buildQr(item);
+      qrBox.style.width = qrBox.style.height = (size.h - 4) + "mm";
+      div.appendChild(qrBox);
+      const right = document.createElement("div");
+      right.className = "qr-side";
+      div.appendChild(right);
+      fillLabelBody(right, item, codeType === "both");
+      return div;
+    }
+
+    fillLabelBody(div, item, true);
+    return div;
+  }
+
+  function fillLabelBody(div, item, withBarcode) {
+    const showBtBar = withBarcode && els.btBar.checked && item.bt;
     const barH = showBtBar ? CONFIG.BAR_HEIGHT * 0.7 : CONFIG.BAR_HEIGHT;
-    try {
-      JsBarcode(svg, item.battery, {
-        format: CONFIG.BARCODE_FORMAT, width: CONFIG.BAR_WIDTH, height: barH,
-        displayValue: false, margin: 0
-      });
-    } catch (e) {
-      svg.outerHTML = `<div style="color:#b42318">Invalid: ${item.battery}</div>`;
+    if (withBarcode) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      div.appendChild(svg);
+      try {
+        JsBarcode(svg, item.battery, {
+          format: CONFIG.BARCODE_FORMAT, width: CONFIG.BAR_WIDTH, height: barH,
+          displayValue: false, margin: 0
+        });
+      } catch (e) {
+        svg.outerHTML = `<div style="color:#b42318">Invalid: ${item.battery}</div>`;
+      }
     }
 
     const no = document.createElement("div");
@@ -149,6 +194,7 @@
   // ---------- settings re-render ----------
   els.size.addEventListener("change", render);
   els.btBar.addEventListener("change", render);
+  els.code.addEventListener("change", render);
 
   // ---------- print ----------
   $("btnPrint").addEventListener("click", () => {
