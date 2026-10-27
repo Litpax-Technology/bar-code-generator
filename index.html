@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Litpax Battery Labels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style id="page-size"></style>
+</head>
+<body>
+  <header class="topbar no-print">
+    <div class="brand">LITPAX <span>Battery Label Generator</span></div>
+    <div class="count"><b id="labelCount">0</b> labels</div>
+  </header>
+
+  <main class="wrap no-print">
+    <!-- LEFT: input -->
+    <section class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="single">Single Entry</button>
+        <button class="tab" data-tab="bulk">Bulk (Excel Paste)</button>
+      </div>
+
+      <form id="singleForm" class="tab-body">
+        <label for="inBattery">Battery No</label>
+        <input id="inBattery" placeholder="LiTZJ1Lf51100L000001" autocomplete="off" required>
+
+        <label for="inBt">BT No</label>
+        <input id="inBt" placeholder="A4:C1:37:19:AF:1B" autocomplete="off">
+
+        <label for="inModel">Model Name</label>
+        <input id="inModel" autocomplete="off">
+
+        <button type="submit" class="btn primary">+ Add Label</button>
+        <p class="hint">Enter dabane se bhi add ho jayega. Battery No add hone ke baad cursor wapas Battery No pe aa jayega.</p>
+      </form>
+
+      <div id="bulkBody" class="tab-body" hidden>
+        <label for="inBulk">Excel se 3 columns copy karke paste karo<br><small>Battery No | BT No | Model</small></label>
+        <textarea id="inBulk" rows="9" placeholder="LiTZJ1Lf51100L000001	A4:C1:37:19:AF:1B	51V100Ah
+LiTZJ1Lf51100L000002	A4:C1:37:19:AF:2C	51V100Ah"></textarea>
+        <p class="hint">Model column khali ho to default model ({{model}}) lagega. Header row automatically skip.</p>
+        <button id="bulkAdd" class="btn primary">Add All</button>
+      </div>
+
+      <hr>
+
+      <div class="settings">
+        <div>
+          <label for="selSize">Label Size</label>
+          <select id="selSize"></select>
+        </div>
+        <div>
+          <label for="selMode">Print Mode</label>
+          <select id="selMode">
+            <option value="label">Label Printer (1 per sticker)</option>
+            <option value="a4">A4 Sheet (grid)</option>
+          </select>
+        </div>
+        <label class="check"><input type="checkbox" id="chkBtBarcode"> BT No ka bhi barcode banao</label>
+      </div>
+
+      <div class="actions">
+        <button id="btnPrint" class="btn dark">Print Labels</button>
+        <button id="btnClear" class="btn ghost">Clear All</button>
+      </div>
+      <p id="msg" class="msg" role="status"></p>
+    </section>
+
+    <!-- RIGHT: preview list -->
+    <section class="preview-col">
+      <div class="preview-head">Preview</div>
+      <div id="previewEmpty" class="empty">Abhi koi label nahi hai. Left se Battery No daalo.</div>
+      <div id="preview" class="preview-grid"></div>
+    </section>
+  </main>
+
+  <!-- Print area (sirf print mein dikhega) -->
+  <div id="printArea" class="print-only"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
