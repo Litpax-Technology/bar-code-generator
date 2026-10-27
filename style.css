@@ -85,6 +85,14 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
 .label .meta .mono { font-family: var(--mono); }
 .label .btbar { margin-top: .8mm; }
 .label.small .batno { font-size: 2.4mm; }
+
+/* QR layout: QR left, text right */
+.label.with-qr { flex-direction: row; justify-content: flex-start; gap: 2.5mm; }
+.label .qr { flex: none; display: flex; }
+.label .qr svg { width: 100%; height: 100%; }
+.label .qr-side { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+.label .qr-side .batno { word-break: break-all; }
+.label .qr-side .meta { flex-direction: column; gap: .5mm; }
 .label.small .meta { font-size: 2mm; }
 
 /* ===== PRINT ===== */
