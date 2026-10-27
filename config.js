@@ -24,5 +24,6 @@ const CONFIG = {
   DEFAULT_CODE: "barcode",   // "barcode" | "qr" | "both"
   QR_CONTENT: "all",         // "all" = Battery No|BT No|Model,  "battery" = sirf Battery No
   QR_SEPARATOR: "|",
+  QR_SIZE_MM: 22,            // default QR size mm mein (8-60)
   QR_ERROR_LEVEL: "M"        // L / M / Q / H
 };
