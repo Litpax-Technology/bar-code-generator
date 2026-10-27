@@ -1,0 +1,184 @@
+// Litpax Battery Label Generator
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let labels = [];   // { battery, bt, model }
+
+  const els = {
+    form: $("singleForm"), battery: $("inBattery"), bt: $("inBt"), model: $("inModel"),
+    bulk: $("inBulk"), bulkAdd: $("bulkAdd"), bulkBody: $("bulkBody"),
+    size: $("selSize"), mode: $("selMode"), btBar: $("chkBtBarcode"),
+    preview: $("preview"), empty: $("previewEmpty"), count: $("labelCount"),
+    printArea: $("printArea"), msg: $("msg")
+  };
+
+  // ---------- init ----------
+  CONFIG.LABEL_SIZES.forEach((s) => {
+    const o = document.createElement("option");
+    o.value = s.id; o.textContent = `${s.w} × ${s.h} mm`;
+    els.size.appendChild(o);
+  });
+  els.size.value = CONFIG.DEFAULT_SIZE;
+  els.model.value = CONFIG.DEFAULT_MODEL;
+  const bulkHint = document.querySelector("#bulkBody .hint");
+  bulkHint.textContent = bulkHint.textContent.replace("{{model}}", CONFIG.DEFAULT_MODEL);
+
+  // ---------- tabs ----------
+  document.querySelectorAll(".tab").forEach((t) => {
+    t.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === t));
+      const bulk = t.dataset.tab === "bulk";
+      els.form.hidden = bulk;
+      els.bulkBody.hidden = !bulk;
+    });
+  });
+
+  // ---------- helpers ----------
+  const clean = (v) => String(v || "").trim();
+  const cleanBt = (v) => clean(v).replace(/\s+/g, "").toUpperCase(); // "A4:C1:37:\n19:AF:1B" -> ek line
+
+  function showMsg(text, isErr) {
+    els.msg.textContent = text;
+    els.msg.classList.toggle("err", !!isErr);
+  }
+
+  function getSize() {
+    return CONFIG.LABEL_SIZES.find((s) => s.id === els.size.value) || CONFIG.LABEL_SIZES[0];
+  }
+
+  function addLabel(battery, bt, model) {
+    battery = clean(battery);
+    if (!battery) return "empty";
+    if (labels.some((l) => l.battery === battery)) return "dup";
+    labels.push({ battery, bt: cleanBt(bt), model: clean(model) || CONFIG.DEFAULT_MODEL });
+    return "ok";
+  }
+
+  // ---------- build one label ----------
+  function buildLabel(item) {
+    const size = getSize();
+    const div = document.createElement("div");
+    div.className = "label" + (size.h <= 30 ? " small" : "");
+    div.style.width = size.w + "mm";
+    div.style.height = size.h + "mm";
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    div.appendChild(svg);
+    const showBtBar = els.btBar.checked && item.bt;
+    const barH = showBtBar ? CONFIG.BAR_HEIGHT * 0.7 : CONFIG.BAR_HEIGHT;
+    try {
+      JsBarcode(svg, item.battery, {
+        format: CONFIG.BARCODE_FORMAT, width: CONFIG.BAR_WIDTH, height: barH,
+        displayValue: false, margin: 0
+      });
+    } catch (e) {
+      svg.outerHTML = `<div style="color:#b42318">Invalid: ${item.battery}</div>`;
+    }
+
+    const no = document.createElement("div");
+    no.className = "batno";
+    no.textContent = item.battery;
+    div.appendChild(no);
+
+    if (showBtBar) {
+      const svg2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg2.classList.add("btbar");
+      div.appendChild(svg2);
+      JsBarcode(svg2, item.bt, {
+        format: CONFIG.BARCODE_FORMAT, width: CONFIG.BAR_WIDTH, height: barH * 0.7,
+        displayValue: false, margin: 0
+      });
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.innerHTML =
+      `<span>BT No: <b class="mono"></b></span><span>Model: <b></b></span>`;
+    meta.querySelectorAll("b")[0].textContent = item.bt || "-";
+    meta.querySelectorAll("b")[1].textContent = item.model;
+    div.appendChild(meta);
+    return div;
+  }
+
+  // ---------- render ----------
+  function render() {
+    els.preview.innerHTML = "";
+    labels.forEach((item, i) => {
+      const wrap = document.createElement("div");
+      wrap.className = "preview-item";
+      wrap.appendChild(buildLabel(item));
+      const del = document.createElement("button");
+      del.className = "del"; del.title = "Remove"; del.textContent = "×";
+      del.onclick = () => { labels.splice(i, 1); render(); };
+      wrap.appendChild(del);
+      const sn = document.createElement("div");
+      sn.className = "sn"; sn.textContent = "#" + (i + 1);
+      wrap.appendChild(sn);
+      els.preview.appendChild(wrap);
+    });
+    els.empty.hidden = labels.length > 0;
+    els.count.textContent = labels.length;
+  }
+
+  // ---------- single entry ----------
+  els.form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const r = addLabel(els.battery.value, els.bt.value, els.model.value);
+    if (r === "dup") return showMsg("Ye Battery No pehle se list mein hai.", true);
+    if (r === "empty") return showMsg("Battery No daalo.", true);
+    showMsg("Added: " + clean(els.battery.value));
+    els.battery.value = ""; els.bt.value = "";
+    els.battery.focus();
+    render();
+  });
+
+  // ---------- bulk paste ----------
+  els.bulkAdd.addEventListener("click", () => {
+    const rows = els.bulk.value.split(/\r?\n/).filter((r) => r.trim());
+    let ok = 0, dup = 0;
+    rows.forEach((row) => {
+      const c = row.split("\t");
+      if (/battery/i.test(c[0])) return;          // header skip
+      const r = addLabel(c[0], c[1], c[2]);
+      if (r === "ok") ok++; else if (r === "dup") dup++;
+    });
+    render();
+    showMsg(`${ok} labels add hue` + (dup ? `, ${dup} duplicate skip` : ""), ok === 0);
+    if (ok) els.bulk.value = "";
+  });
+
+  // ---------- settings re-render ----------
+  els.size.addEventListener("change", render);
+  els.btBar.addEventListener("change", render);
+
+  // ---------- print ----------
+  $("btnPrint").addEventListener("click", () => {
+    if (!labels.length) return showMsg("Print ke liye pehle label add karo.", true);
+    const size = getSize();
+    const mode = els.mode.value;
+    $("page-size").textContent = mode === "label"
+      ? `@page { size: ${size.w}mm ${size.h}mm; margin: 0; }`
+      : `@page { size: A4; margin: 8mm; }`;
+    els.printArea.className = "print-only mode-" + mode;
+    els.printArea.innerHTML = "";
+    labels.forEach((l) => els.printArea.appendChild(buildLabel(l)));
+    window.print();
+  });
+
+  // ---------- clear ----------
+  let clearArmed = false;
+  $("btnClear").addEventListener("click", (e) => {
+    if (!labels.length) return;
+    if (!clearArmed) {
+      clearArmed = true;
+      e.target.textContent = "Sure? Click again";
+      setTimeout(() => { clearArmed = false; e.target.textContent = "Clear All"; }, 3000);
+      return;
+    }
+    labels = []; clearArmed = false; e.target.textContent = "Clear All";
+    render(); showMsg("List clear ho gayi.");
+  });
+
+  // sample label so page khaali na dikhe
+  addLabel("LiTZJ1Lf51100L000001", "A4:C1:37:19:AF:1B", "51V100Ah");
+  render();
+})();
