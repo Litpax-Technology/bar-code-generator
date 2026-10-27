@@ -15,6 +15,8 @@ const CONFIG = {
   BARCODE_FORMAT: "CODE128",
   BAR_WIDTH: 1.6,      // ek bar ki width (px) — scan na ho to badhao
   BAR_HEIGHT: 45,      // barcode height (px)
+  BAR_SIZE_PCT: 90,    // default: label width ka kitna % barcode lega (30-100)
+  BAR_SIZE_MM: 12,     // default: barcode height mm mein (4-30)
 
   DEFAULT_MODEL: "51V100Ah",
 
