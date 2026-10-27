@@ -53,6 +53,14 @@ LiTZJ1Lf51100L000002	A4:C1:37:19:AF:2C	51V100Ah"></textarea>
           <select id="selSize"></select>
         </div>
         <div>
+          <label for="selCode">Code Type</label>
+          <select id="selCode">
+            <option value="barcode">Barcode</option>
+            <option value="qr">QR Code</option>
+            <option value="both">Barcode + QR</option>
+          </select>
+        </div>
+        <div>
           <label for="selMode">Print Mode</label>
           <select id="selMode">
             <option value="label">Label Printer (1 per sticker)</option>
@@ -81,6 +89,7 @@ LiTZJ1Lf51100L000002	A4:C1:37:19:AF:2C	51V100Ah"></textarea>
   <div id="printArea" class="print-only"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
