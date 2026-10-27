@@ -100,7 +100,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
 .label .qr-side { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .label .qr-side .batno { word-break: break-all; }
 .label .qr-side .meta { flex-direction: column; gap: .5mm; }
-.label.small .meta { font-size: 2mm; }
+.label.small .meta { font-size: 2.4mm; font-weight: 600; }
 
 /* ===== PRINT ===== */
 .print-only { display: none; }
