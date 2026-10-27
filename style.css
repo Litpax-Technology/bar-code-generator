@@ -54,6 +54,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
 .slider label { display: flex; justify-content: space-between; }
 .slider label b { font-family: var(--mono); color: var(--ink); }
 .slider input { padding: 0; border: 0; accent-color: var(--accent); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink); }
 .check input { width: auto; }
 
@@ -108,8 +109,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
   .print-only { display: block; }
   body { background: #fff; }
   .label { border: 0; }
-  #printArea.mode-label .label { page-break-after: always; break-after: page; }
-  #printArea.mode-label .label:last-child { page-break-after: auto; break-after: auto; }
+  #printArea.mode-label .label-row { display: flex; align-items: flex-start; overflow: hidden; page-break-after: always; break-after: page; }
+  #printArea.mode-label .label-row:last-child { page-break-after: auto; break-after: auto; }
+  #printArea.mode-label .label { flex: none; }
   #printArea.mode-a4 { display: flex; flex-wrap: wrap; gap: 3mm; }
   #printArea.mode-a4 .label { border: 1px dashed #999; break-inside: avoid; }
 }
