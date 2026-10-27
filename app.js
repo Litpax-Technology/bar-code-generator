@@ -17,7 +17,19 @@
     o.value = s.id; o.textContent = `${s.w} × ${s.h} mm`;
     els.size.appendChild(o);
   });
+  const optCustom = document.createElement("option");
+  optCustom.value = "custom"; optCustom.textContent = "Custom…";
+  els.size.appendChild(optCustom);
   els.size.value = CONFIG.DEFAULT_SIZE;
+
+  // custom size: pichli baar wala size yaad rakho
+  const inW = $("inW"), inH = $("inH");
+  try {
+    const saved = JSON.parse(localStorage.getItem("litpaxLabelSize") || "null");
+    if (saved) { els.size.value = saved.id; inW.value = saved.w || ""; inH.value = saved.h || ""; }
+  } catch (e) {}
+  if (!els.size.value) els.size.value = CONFIG.DEFAULT_SIZE;
+  $("customSize").hidden = els.size.value !== "custom";
   els.model.value = CONFIG.DEFAULT_MODEL;
   els.code.value = CONFIG.DEFAULT_CODE;
   const bulkHint = document.querySelector("#bulkBody .hint");
@@ -43,7 +55,19 @@
   }
 
   function getSize() {
+    if (els.size.value === "custom") {
+      const w = parseFloat(inW.value), h = parseFloat(inH.value);
+      if (w >= 20 && h >= 10) return { id: "custom", w, h };
+      return CONFIG.LABEL_SIZES[0];   // galat value ho to default
+    }
     return CONFIG.LABEL_SIZES.find((s) => s.id === els.size.value) || CONFIG.LABEL_SIZES[0];
+  }
+
+  function saveSize() {
+    try {
+      localStorage.setItem("litpaxLabelSize",
+        JSON.stringify({ id: els.size.value, w: inW.value, h: inH.value }));
+    } catch (e) {}
   }
 
   function addLabel(battery, bt, model) {
@@ -192,13 +216,20 @@
   });
 
   // ---------- settings re-render ----------
-  els.size.addEventListener("change", render);
+  els.size.addEventListener("change", () => {
+    $("customSize").hidden = els.size.value !== "custom";
+    if (els.size.value === "custom") inW.focus();
+    saveSize(); render();
+  });
+  [inW, inH].forEach((inp) => inp.addEventListener("input", () => { saveSize(); render(); }));
   els.btBar.addEventListener("change", render);
   els.code.addEventListener("change", render);
 
   // ---------- print ----------
   $("btnPrint").addEventListener("click", () => {
     if (!labels.length) return showMsg("Print ke liye pehle label add karo.", true);
+    if (els.size.value === "custom" && getSize().id !== "custom")
+      return showMsg("Custom size sahi daalo: width kam se kam 20 mm, height 10 mm.", true);
     const size = getSize();
     const mode = els.mode.value;
     $("page-size").textContent = mode === "label"
