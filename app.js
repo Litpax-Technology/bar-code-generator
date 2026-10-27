@@ -29,6 +29,30 @@
     if (saved) { els.size.value = saved.id; inW.value = saved.w || ""; inH.value = saved.h || ""; }
   } catch (e) {}
   if (!els.size.value) els.size.value = CONFIG.DEFAULT_SIZE;
+
+  // barcode size sliders
+  const rngW = $("rngBarW"), rngH = $("rngBarH");
+  rngW.value = CONFIG.BAR_SIZE_PCT;
+  rngH.value = CONFIG.BAR_SIZE_MM;
+  try {
+    const b = JSON.parse(localStorage.getItem("litpaxBarSize") || "null");
+    if (b) { rngW.value = b.w; rngH.value = b.h; }
+  } catch (e) {}
+  function showBarVals() {
+    $("valBarW").textContent = rngW.value + "%";
+    $("valBarH").textContent = rngH.value + " mm";
+  }
+  showBarVals();
+
+  // JsBarcode ke baad svg ko slider ke size pe set karo
+  function sizeBar(svg, heightMm) {
+    const w = svg.getAttribute("width"), h = svg.getAttribute("height");
+    if (w && h && !svg.getAttribute("viewBox")) svg.setAttribute("viewBox", `0 0 ${parseFloat(w)} ${parseFloat(h)}`);
+    svg.removeAttribute("width"); svg.removeAttribute("height");
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.style.width = rngW.value + "%";
+    svg.style.height = heightMm + "mm";
+  }
   $("customSize").hidden = els.size.value !== "custom";
   els.model.value = CONFIG.DEFAULT_MODEL;
   els.code.value = CONFIG.DEFAULT_CODE;
@@ -138,6 +162,7 @@
           format: CONFIG.BARCODE_FORMAT, width: CONFIG.BAR_WIDTH, height: barH,
           displayValue: false, margin: 0
         });
+        sizeBar(svg, showBtBar ? rngH.value * 0.7 : rngH.value);
       } catch (e) {
         svg.outerHTML = `<div style="color:#b42318">Invalid: ${item.battery}</div>`;
       }
@@ -156,6 +181,7 @@
         format: CONFIG.BARCODE_FORMAT, width: CONFIG.BAR_WIDTH, height: barH * 0.7,
         displayValue: false, margin: 0
       });
+      sizeBar(svg2, rngH.value * 0.5);
     }
 
     const meta = document.createElement("div");
@@ -224,6 +250,11 @@
   [inW, inH].forEach((inp) => inp.addEventListener("input", () => { saveSize(); render(); }));
   els.btBar.addEventListener("change", render);
   els.code.addEventListener("change", render);
+  [rngW, rngH].forEach((r) => r.addEventListener("input", () => {
+    showBarVals();
+    try { localStorage.setItem("litpaxBarSize", JSON.stringify({ w: rngW.value, h: rngH.value })); } catch (e) {}
+    render();
+  }));
 
   // ---------- print ----------
   $("btnPrint").addEventListener("click", () => {
