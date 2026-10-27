@@ -48,6 +48,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
 
 .settings { display: flex; flex-direction: column; gap: 10px; }
+.custom-size { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.custom-size input { flex: 1; min-width: 0; }
+.custom-size span { color: var(--muted); font-size: 13px; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink); }
 .check input { width: auto; }
 
