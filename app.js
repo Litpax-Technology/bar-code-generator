@@ -38,11 +38,28 @@
     const b = JSON.parse(localStorage.getItem("litpaxBarSize") || "null");
     if (b) { rngW.value = b.w; rngH.value = b.h; }
   } catch (e) {}
+  // QR size slider
+  const rngQ = $("rngQr");
+  rngQ.value = CONFIG.QR_SIZE_MM;
+  try {
+    const q = localStorage.getItem("litpaxQrSize");
+    if (q) rngQ.value = q;
+  } catch (e) {}
+
   function showBarVals() {
     $("valBarW").textContent = rngW.value + "%";
     $("valBarH").textContent = rngH.value + " mm";
+    $("valQr").textContent = rngQ.value + " mm";
+  }
+
+  // jo code type select hai, sirf uske slider dikhao
+  function toggleSliders() {
+    const t = els.code.value;
+    $("qrSizeBox").hidden = t === "barcode";
+    rngW.parentElement.hidden = rngH.parentElement.hidden = t === "qr";
   }
   showBarVals();
+  toggleSliders();
 
   // JsBarcode ke baad svg ko slider ke size pe set karo
   function sizeBar(svg, heightMm) {
@@ -138,7 +155,9 @@
     if (codeType !== "barcode") {
       div.classList.add("with-qr");
       const qrBox = buildQr(item);
-      qrBox.style.width = qrBox.style.height = (size.h - 4) + "mm";
+      // slider ka size, lekin label ki height se bada nahi
+      const qrMm = Math.min(Number(rngQ.value), size.h - 3);
+      qrBox.style.width = qrBox.style.height = qrMm + "mm";
       div.appendChild(qrBox);
       const right = document.createElement("div");
       right.className = "qr-side";
@@ -249,7 +268,12 @@
   });
   [inW, inH].forEach((inp) => inp.addEventListener("input", () => { saveSize(); render(); }));
   els.btBar.addEventListener("change", render);
-  els.code.addEventListener("change", render);
+  els.code.addEventListener("change", () => { toggleSliders(); render(); });
+  rngQ.addEventListener("input", () => {
+    showBarVals();
+    try { localStorage.setItem("litpaxQrSize", rngQ.value); } catch (e) {}
+    render();
+  });
   [rngW, rngH].forEach((r) => r.addEventListener("input", () => {
     showBarVals();
     try { localStorage.setItem("litpaxBarSize", JSON.stringify({ w: rngW.value, h: rngH.value })); } catch (e) {}
